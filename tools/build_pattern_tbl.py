@@ -8,28 +8,32 @@ opcodes for drum machine:
 0xFF -> end of style partition
 
 
-drum patterns to 32-bit unsigned int data
-with pattern-final marker bit (32th bit)
+each step is one 32-bit word (little endian) made of 2-bit instrument
+slots. for each slot, 00 is silent, 01 is hit, and 10 is flam
 
-bits 1-28 (little endian)
+  bits  0-1  -               (unused, always 0)
+  bits  2-3  BD              (bass/kick)
+  bits  4-5  CB              (cowbell)
+  bits  6-7  TMB             (tambourine)
+  bits  8-9  CPS             (hand clap)
+  bits 10-11 LT              (low tom)
+  bits 12-13 RS              (rimshot)
+  bits 14-15 SD              (snare)
+  bits 16-17 MT              (mid tom)
+  bits 18-19 HT              (high tom)
+  bits 20-21 OH              (open hi-hat)
+  bits 22-23 CH              (closed hi-hat)
+  bits 24-25 CY.C            (crash cymbal)
+  bits 26-27 CY.R            (ride cymbal)
+  bits 28-29 AC              (accent)
 
-for each 2-bit instrument, 00 is silent, 01 is hit, and 10 is flam
+the pattern-final bit (bit 31) from the json is dropped here,
+0xFD marks the end of a pattern instead.
 
-   1 - AC                 (accent)
-   3 - CY.R               (ride cymbal)
-   5 - CY.C               (crash cymbal)
-   7 - CH                 (closed hi-hat)
-   9 - OH                 (open hi-hat)
-  11 - HT                 (high tom)
-  13 - MT                 (mid tom)
-  15 - SD                 (snare)
-  17 - RS                 (rimshot)
-  19 - LT                 (low tom)
-  21 - CPS                (hand clap)
-  23 - TMB                (tambourine)
-  25 - CB                 (cowbell)
-  27 - BD                 (bass/kick)
-  32 - pattern-final
+to regenerate everything after editing drum_patterns.all.txt (run from tools/):
+    python drum_patterns_to_bytes.py    -> drum_patterns.all.json
+    python build_pattern_tbl.py         -> ../patterns.h (+ patterns.bin, patterns.jmp.tbl)
+    python construct_trainer.py         -> drum_patterns.fst.trainer
 
 '''
 
@@ -62,3 +66,11 @@ with open('patterns.bin', 'wb') as f:
     f.write(bin_img.read())
 with open('patterns.jmp.tbl', 'w', newline='\n') as f:
     json.dump(jmp_tbl, f, indent=4)
+
+# C header for main.c, 16 bytes per line (CRLF, like the original file)
+data = bin_img.getvalue()
+rows = [','.join('0x%02x' % b for b in data[i:i+16]) for i in range(0, len(data), 16)]
+header = '/*\n\n' + __doc__.strip('\n').split('\n\nto regenerate')[0] + '\n\n*/\n\n'
+header += 'static unsigned char patterns[] = {\n' + ',\n'.join(rows) + '\n};'
+with open('../patterns.h', 'w', newline='\r\n') as f:
+    f.write(header)

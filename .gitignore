@@ -1,0 +1,10 @@
+# build output
+*.exe
+*.o
+
+# made by tools/build_pattern_tbl.py (patterns.h is the one that's kept)
+tools/patterns.bin
+tools/patterns.jmp.tbl
+
+# recordings made with -o
+*.mid

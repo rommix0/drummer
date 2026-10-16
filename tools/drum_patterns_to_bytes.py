@@ -1,25 +1,29 @@
 # drum patterns to 32-bit unsigned int data
-# with pattern-final marker bit (29th bit)
+# with pattern-final marker bit (bit 31)
 #
-# bits 1-28 (little endian)
+# each step is one 32-bit word (little endian in patterns.h) made of
+# 2-bit instrument slots. for each slot, 00 is silent, 01 is hit, and 10 is flam
 #
-# for each 2-bit instrument, 00 is silent, 01 is hit, and 10 is flam
+#   bits  0-1  -               (unused, always 0)
+#   bits  2-3  BD              (bass/kick)
+#   bits  4-5  CB              (cowbell)
+#   bits  6-7  TMB             (tambourine)
+#   bits  8-9  CPS             (hand clap)
+#   bits 10-11 LT              (low tom)
+#   bits 12-13 RS              (rimshot)
+#   bits 14-15 SD              (snare)
+#   bits 16-17 MT              (mid tom)
+#   bits 18-19 HT              (high tom)
+#   bits 20-21 OH              (open hi-hat)
+#   bits 22-23 CH              (closed hi-hat)
+#   bits 24-25 CY.C            (crash cymbal)
+#   bits 26-27 CY.R            (ride cymbal)
+#   bits 28-29 AC              (accent)
+#   bit  31    pattern-final   (last step of a pattern, json only;
+#                               patterns.h uses 0xFD instead)
 #
-#    1 - AC                 (accent)
-#    3 - CY.R               (ride cymbal)
-#    5 - CY.C               (crash cymbal)
-#    7 - CH                 (closed hi-hat)
-#    9 - OH                 (open hi-hat)
-#   11 - HT                 (high tom)
-#   13 - MT                 (mid tom)
-#   15 - SD                 (snare)
-#   17 - RS                 (rimshot)
-#   19 - LT                 (low tom)
-#   21 - CPS                (hand clap)
-#   23 - TMB                (tambourine)
-#   25 - CB                 (cowbell)
-#   27 - BD                 (bass/kick)
-#   32 - pattern-final
+# rows are read in drum_patterns.all.txt order (AC first, BD last), so each row
+# lands 2 bits below the one before it
 
 import re, json
 pattern_grab = re.compile(r'([A-Z &]+)(\d*)\:\n\n(.*?)\n\n', re.DOTALL)
@@ -61,7 +65,7 @@ for ent in pattern_grab.finditer(data):
                 # flam
                 byte_out |= 0x2
             elif token not in ('#', 'F', '-'):
-                raise Exception(r'whats is {token} doing here?')
+                raise Exception(f'whats is {token} doing here?')
             byte_out <<= 2
         if i >= seq_len - 1:
             # pattern final bit at MSB
