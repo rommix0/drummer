@@ -23,10 +23,12 @@
 
 import re, json
 pattern_grab = re.compile(r'([A-Z &]+)(\d*)\:\n\n(.*?)\n\n', re.DOTALL)
-break_detect = re.compile(r' *BREAK *$')
+break_detect = re.compile(r' *BREAKS? *$')
 
 with open('drum_patterns.all.txt', 'r') as f:
-    data = f.read()
+    # make sure the last pattern is also followed by a blank line,
+    # otherwise pattern_grab misses it (this dropped ENDING 3)
+    data = f.read().rstrip('\n') + '\n\n'
 
 model = {}
 for ent in pattern_grab.finditer(data):
