@@ -1,0 +1,84 @@
+# drum patterns to 32-bit unsigned int data
+# with pattern-final marker bit (29th bit)
+#
+# bits 1-28 (little endian)
+#
+# for each 2-bit instrument, 00 is silent, 01 is hit, and 10 is flam
+#
+#    1 - AC                 (accent)
+#    3 - CY.R               (ride cymbal)
+#    5 - CY.C               (crash cymbal)
+#    7 - CH                 (closed hi-hat)
+#    9 - OH                 (open hi-hat)
+#   11 - HT                 (high tom)
+#   13 - MT                 (mid tom)
+#   15 - SD                 (snare)
+#   17 - RS                 (rimshot)
+#   19 - LT                 (low tom)
+#   21 - CPS                (hand clap)
+#   23 - TMB                (tambourine)
+#   25 - CB                 (cowbell)
+#   27 - BD                 (bass/kick)
+#   32 - pattern-final
+
+import re, json
+pattern_grab = re.compile(r'([A-Z &]+)(\d*)\:\n\n(.*?)\n\n', re.DOTALL)
+break_detect = re.compile(r' *BREAK *$')
+
+with open('drum_patterns.all.txt', 'r') as f:
+    data = f.read()
+
+model = {}
+for ent in pattern_grab.finditer(data):
+    p_name, p_num, p = ent.groups()
+    is_break = False
+    break_find = break_detect.search(p_name)
+    if break_find:
+        is_break = True
+        p_name = p_name[:break_find.start()]
+    if p_num == '': p_num = '1'
+    p_num = int(p_num)
+    tmp = {}; seq_len = 0
+    for subent in p.split('\n'):
+        subent = subent.split('\t')
+        perc_name = subent[0]
+        perc_seq  = [x for x in subent[1:] if x]
+        if seq_len < len(perc_seq):
+            seq_len = len(perc_seq)
+        tmp[perc_name] = perc_seq
+    
+    byte_seq = []
+    for i in range(seq_len):
+        byte_out = 0
+        for j in tmp.keys():
+            token = tmp[j][i]
+            if token == '#':
+                # hit
+                byte_out |= 0x1
+            elif token == 'F':
+                # flam
+                byte_out |= 0x2
+            elif token not in ('#', 'F', '-'):
+                raise Exception(r'whats is {token} doing here?')
+            byte_out <<= 2
+        if i >= seq_len - 1:
+            # pattern final bit at MSB
+            byte_out |= 0x80000000
+        byte_seq.append(byte_out)
+    
+    p_name = p_name.lower().strip()
+    if p_name not in model:
+        model[p_name] = {}
+    if is_break:
+        if 'break' not in model[p_name]:
+            model[p_name]['break'] = {}
+        if p_num not in model[p_name]['break']:
+            model[p_name]['break'][p_num] = byte_seq
+    else:
+        if 'main' not in model[p_name]:
+            model[p_name]['main'] = {}
+        if p_num not in model[p_name]['main']:
+            model[p_name]['main'][p_num] = byte_seq
+
+with open('drum_patterns.all.json', 'w', newline='\n') as f:
+    json.dump(model, f, indent=4)

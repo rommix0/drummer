@@ -1,0 +1,22 @@
+drum patterns to 32-bit unsigned int data
+with pattern-final marker bit (32th bit)
+
+bits 1-28 (little endian)
+
+for each 2-bit instrument, 00 is silent, 01 is hit, and 10 is flam
+
+   1 - AC                 (accent)
+   3 - CY.R               (ride cymbal)
+   5 - CY.C               (crash cymbal)
+   7 - CH                 (closed hi-hat)
+   9 - OH                 (open hi-hat)
+  11 - HT                 (high tom)
+  13 - MT                 (mid tom)
+  15 - SD                 (snare)
+  17 - RS                 (rimshot)
+  19 - LT                 (low tom)
+  21 - CPS                (hand clap)
+  23 - TMB                (tambourine)
+  25 - CB                 (cowbell)
+  27 - BD                 (bass/kick)
+  32 - pattern-final
