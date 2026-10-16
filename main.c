@@ -9,7 +9,7 @@ usage:
 	-> program [style] [bpm]
 
 	style is a number (0-22) or a name ("rock", "cha cha", "r&b", ...)
-	bpm is clamped to 60-300
+	bpm defaults to 120 and is clamped to 60-300
 
 keys while playing:
 	left / right    previous / next variation (switches at the end of the bar)
@@ -423,7 +423,7 @@ void printUsage(void) {
 
 int main(int argc, char* argv[])
 {
-	Controls c = { 0, 0, 90, 0, 0, 0, "" };
+	Controls c = { 0, 0, 120, 0, 0, 0, "" };
 	Style style, ending;
 	int loaded;
 	HMIDIOUT midi_device;
