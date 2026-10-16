@@ -1,8 +1,16 @@
 /*
 
-Notes for future me (@rommix0), and others wanting to replicate the make process.
+///////////////////////////////////////
+//  DRUMMER V1.0                     //
+//                                   //
+//  AUTHOR: ANTHONY C. BARTMAN       //
+//  DATE:   9/12/2026-10/16/2026     //
+///////////////////////////////////////
 
-do this to build the program:
+@rommix0 did most of the initial coding work
+while claude was able to do the rest.
+
+do this to build the program (works with WinLibs MinGW):
 	-> gcc main.c -o drummer -lwinmm
 
 to regenerate patterns.h after editing tools/drum_patterns.all.txt, see the
