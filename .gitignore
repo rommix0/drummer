@@ -8,3 +8,6 @@ tools/patterns.jmp.tbl
 
 # recordings made with -o
 *.mid
+
+# source material
+material/
